@@ -1,38 +1,37 @@
 var fs = require('fs');
 
+var sinX1, sinX2, sinX4;
+var sinX1LR, sinX2LR, sinX4LR;
 
-
-var sin_x1, sin_x2, sin_x4;
-var sin_x1_lr, sin_x2_lr, sin_x4_lr;
-
-var start_freq = 30;
-var end_freq = 120;
-var sin_x1_base_lr_freq = 1.0;
-var sin_x2_base_lr_freq = .7;
-var sin_x4_base_lr_freq = 1.1;
-var all_sounds = [];
+// parameters
+var startFreq = 30;
+var endFreq = 120;
+var sinX1BaseLR_freq = 1.0;
+var sinX2BaseLR_freq = .7;
+var sinX4BaseLR_freq = 1.1;
+var allSounds = [];
 var filename = "sound.wav";
-var samples_per_second = 44100;
-var max_amplitude = 1048575; // 20bits - 1 equiv
+var samplesPerSecond = 44100;
+var maxAmplitude = 1048575; // 20bits - 1 equiv
 var durationForFreq = 500;
 
-var create_sin = function(freq, durationMs) {
+var createSin = function(freq, durationMs) {
     var samples = [];
-    var numSamples = samples_per_second * durationMs / 1000;
+    var numSamples = samplesPerSecond * durationMs / 1000;
     var sinValue;
     for(var i = 0; i < numSamples; i++) {
-        sinValue = 2 * Math.PI * freq  * i / samples_per_second;
-        samples[i] = Math.round(max_amplitude * Math.sin(sinValue));
+        sinValue = 2 * Math.PI * freq  * i / samplesPerSecond;
+        samples[i] = Math.round(maxAmplitude * Math.sin(sinValue));
     }
 }
 
-var add_lr = function(samples, rotateFreq) {
+var addLR = function(samples, rotateFreq) {
     // take mono samples, return stereo with l-r mix of about rotateFreq
     rotateFreq = rotateFreq + ((Math.random() - 0.5) * rotateFreq /10);
     l = [], r = [];
     var left, right;
     for (var i = 0; i < samples; i++) {
-        right = Math.sin(2 * Math.PI * i * rotateFreq / samples_per_second);
+        right = Math.sin(2 * Math.PI * i * rotateFreq / samplesPerSecond);
         left = 1 - right;
         l[i] = samples[i] * left;
         r[i] = samples[i] * right;
@@ -41,31 +40,46 @@ var add_lr = function(samples, rotateFreq) {
     return [l, r];
 }
 
-var add_sounds = function() {
+var addSounds = function() {
 
 }
 
-var write_file = function(sounds, filename) {
-    var interleave = interleaveSounds(sounds);
-    var stream = fs.createWriteStream(filename);
+var writeFile = function(sounds, filename) {
+    var interleaveAndByte = interleaveSounds(sounds);
 
-    for(var i = 0; i < sounds)
+    writeWAV(interleaveAndByte);
+}
+
+var interleaveSounds = function(sounds) {
+    // this is where it goes from js numbers to an interleaved byte array
+    // 
+    var len = sounds.len;
+    for(var i = 0; i < len; i++) {
+        for(var j =0; j < i.l.length; j++) {
+
+        }
+    }
+    return new Buffer(size);
+}
+
+var writeWAV = function(buffer, filename) {
+    var stream = fs.createWriteStream(filename);
 }
 
 // do slow ascent from 30 to 120
 // add in harmonics
 // update left to right freq
 // save file
-for(var i = start_freq, duration = durationForFreq; i < end_freq; i++) {
-    sin_x1 = create_sin(i, duration);
-    sin_x2 = create_sin(i*2, duration);
-    sin_x4 = create_sin(i*4, duration);
-    sin_x1_lr = add_lr(sin_x1, sin_x1_base_lr_freq);
-    sin_x2_lr = add_lr(sin_x2, sin_x1_base_lr_freq);
-    sin_x4_lr = add_lr(sin_x4, sin_x1_base_lr_freq);
-    var mix = add_sounds(sin_x1_lr, sin_x2_lr, sin_x4_lr);
-    all_sounds.push(mix);
+for(var i = startFreq, duration = durationForFreq; i < endFreq; i++) {
+    sinX1 = createSin(i, duration);
+    sinX2 = createSin(i*2, duration);
+    sinX4 = createSin(i*4, duration);
+    sinX1LR = addLR(sinX1, sinX1BaseLR_freq);
+    sinX2LR = addLR(sinX2, sinX1BaseLR_freq);
+    sinX4LR = addLR(sinX4, sinX1BaseLR_freq);
+    var mix = add_sounds(sinX1LR, sinX2LR, sinX4LR);
+    allSounds.push(mix);
     console.log(i);
 }
 
-write_file(all_sounds, filename);
+writeFile(all_sounds, filename);
