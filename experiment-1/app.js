@@ -7,11 +7,11 @@ var sinX1LROffset = 0, sinX2LROffset = 0, sinX4LROffset = 0;
 
 // parameters
 var startFreq = 50;
-var endFreq = 70;
-var numSteps = 1000;
-var sinX1BaseLRFreq = 4;
-var sinX2BaseLRFreq = .8;
-var sinX4BaseLRFreq = 1.1;
+var endFreq = 200;
+var numSteps = 800;
+var sinX1BaseLRFreq = .19;
+var sinX2BaseLRFreq = .11;
+var sinX4BaseLRFreq = .04;
 var allSounds = [];
 var filename = "sound.wav";
 var samplesPerSecond = 44100;
