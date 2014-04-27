@@ -2,21 +2,34 @@ var fs = require('fs');
 
 var sinX1, sinX2, sinX4;
 var sinX1LR, sinX2LR, sinX4LR;
-var sinX1Offset = 0, sinX2Offset = 0, sinX4Offset = 0;
+var sinX1Offset = Math.PI/4, sinX2Offset = Math.PI/4, sinX4Offset = Math.PI/4;
 var sinX1LROffset = 0, sinX2LROffset = 0, sinX4LROffset = 0;
+var voices = [];
 
 // parameters
 var startFreq = 50;
-var endFreq = 200;
+var endFreq = 120;
 var numSteps = 800;
-var sinX1BaseLRFreq = .19;
-var sinX2BaseLRFreq = .11;
-var sinX4BaseLRFreq = .04;
+var sinX1BaseLRFreq = .06;
+var sinX2BaseLRFreq = .065;
+var sinX4BaseLRFreq = .07;
 var allSounds = [];
-var filename = "sound.wav";
+var filename = "what is going on.wav";
 var samplesPerSecond = 44100;
 var maxAmplitude = 1048575; // 20bits - 1 equiv
 var durationForFreq = 100;
+
+var voice1 = function(rad) {
+    return (Math.sin(rad) + 0.33 * Math.sin(rad * 3) + 0.11 * Math.sin(rad * 5))/1.44;
+}
+
+var voice2 = function(rad) {
+    return (Math.sin(rad) + 0.33 * Math.sin(rad * 2) + 0.11 * Math.sin(rad * 4))/1.44;
+}
+
+var voice3 = function(rad) {
+    return (Math.sin(rad) + 0.33 * Math.sin(rad * 2) + 0.11 * Math.sin(rad * 3))/1.44;
+}
 
 var toBuffer = function(ab) {
     var buffer = new Buffer(ab.byteLength);
@@ -27,13 +40,14 @@ var toBuffer = function(ab) {
     return buffer;
 }
 
-var createSin = function(freq, durationMs, offset) {
+var createSin = function(freq, durationMs, offset, voice) {
     var samples = [];
     var numSamples = samplesPerSecond * durationMs / 1000;
     var sinValue;
     for(var i = 0; i < numSamples; i++) {
         sinValue = 2 * Math.PI * freq  * i / samplesPerSecond + offset;
-        samples.push(Math.round(maxAmplitude * Math.sin(sinValue)));
+        // samples.push(Math.round(maxAmplitude * Math.sin(sinValue)));        
+        samples.push(Math.round(maxAmplitude * voice(sinValue)));
     }
 
     return [samples, sinValue];
@@ -41,7 +55,7 @@ var createSin = function(freq, durationMs, offset) {
 
 var addLR = function(samples, rotateFreq, offset) {
     // take mono samples, return stereo with l-r mix of about rotateFreq
-    rotateFreq = rotateFreq + ((Math.random() - 0.5) * rotateFreq /3);
+    rotateFreq = rotateFreq + ((Math.random() - 0.5) * rotateFreq /1.5);
     var lr = [], l = [], r = [];
     var leftRaw, left, right;
     for (var i = 0; i < samples.length; i++) {
@@ -147,16 +161,22 @@ var writeWAV = function(interleaved, filename) {
 // update left to right freq
 // save file
 var stepSize = (endFreq - startFreq)/numSteps;
-for(var i = startFreq, duration = durationForFreq; i < endFreq; i+=stepSize) {
-    sinX1 = createSin(i, duration, sinX1Offset);
+for(var i = startFreq, duration = durationForFreq; i < endFreq;) {
+    // var upOrDown = Math.floor(Math.random()*3);
+    // if (upOrDown) {
+        i+=stepSize;
+    // } else {
+        // i-=stepSize;
+    // }
+    sinX1 = createSin(i, duration, sinX1Offset, voice1);
     sinX1Offset = sinX1[1];
     sinX1 = sinX1[0];
-    sinX2 = createSin(i*2, duration, sinX2Offset);
+    sinX2 = createSin(i*2, duration, sinX2Offset, voice2);
     sinX2Offset = sinX2[1];
     sinX2 = sinX2[0];  
-    sinX4 = createSin(i*4, duration, sinX4Offset);
+    sinX4 = createSin(i*4, duration, sinX4Offset, voice3);
     sinX4Offset = sinX4[1];
-    sinX4 = sinX4[0];   
+    sinX4 = sinX4[0];
 
     sinX1LR = addLR(sinX1, sinX1BaseLRFreq, sinX1LROffset);
     sinX1LROffset = sinX1LR[2];
